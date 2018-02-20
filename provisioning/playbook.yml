@@ -44,10 +44,10 @@
           dest: "/etc/apache2/"
         - src: "www"
           dest: "/var/"
+
+    - shell: a2enmod ssl wsgi
       notify:
         - restart apache2
-    - shell: a2enmod ssl wsgi
-
 
   handlers:
     - name: restart apache2
