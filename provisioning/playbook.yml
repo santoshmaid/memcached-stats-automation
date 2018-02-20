@@ -8,11 +8,11 @@
     - name: Install software packages
       package: name={{ item }} state=latest
       with_items:
+      - python-pip
       - memcached
       - apache2
-      - libapache2-mod-wsgi
       - ssl-cert
-      - python-pip
+      - libapache2-mod-wsgi
 
     - apache2_module:
         state: present
@@ -24,11 +24,11 @@
       - flask
 
     - cron:
-        name: Add cron job "memcached per minute stats"
+        name: "Add cron job memcached per minute stats"
         job: "/home/vagrant/memcached.sh"
         minute: "*/1"
 
-    - name: Copy cron, apache config & app
+    - name: "Copy cron, apache config and app"
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -44,3 +44,11 @@
           dest: "/etc/apache2/"
         - src: "www"
           dest: "/var/"
+      notify:
+        - restart apache2
+    - shell: a2enmod ssl wsgi
+
+
+  handlers:
+    - name: restart apache2
+      service: name=apache2 state=restarted
