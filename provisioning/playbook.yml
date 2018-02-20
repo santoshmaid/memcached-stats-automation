@@ -1,0 +1,46 @@
+---
+- hosts: all
+  gather_facts: False
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Install software packages
+      package: name={{ item }} state=latest
+      with_items:
+      - memcached
+      - apache2
+      - libapache2-mod-wsgi
+      - ssl-cert
+      - python-pip
+
+    - apache2_module:
+        state: present
+        name: wsgi
+
+    - name: PIP packages
+      pip: name={{ item }}
+      with_items:
+      - flask
+
+    - cron:
+        name: Add cron job "memcached per minute stats"
+        job: "/home/vagrant/memcached.sh"
+        minute: "*/1"
+
+    - name: Copy cron, apache config & app
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: u=rwx,g=rwx,o=rwx
+      with_items:
+        - src: "cron/memcached.sh"
+          dest: "/home/vagrant/memcached.sh"
+        - src: "cron/mem-load.sh"
+          dest: "/home/vagrant/mem-load.sh"
+        - src: "sites-enabled"
+          dest: "/etc/apache2/"
+        - src: "www"
+          dest: "/var/"
